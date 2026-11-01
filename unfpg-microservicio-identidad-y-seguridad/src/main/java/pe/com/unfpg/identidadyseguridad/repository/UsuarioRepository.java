@@ -7,9 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import pe.com.unfpg.identidadyseguridad.entity.UsuarioEntity;
 
-
 public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
 
-	@Query("select u from UsuarioEntity u where u.estado=true")
+	@Query("select u from UsuarioEntity u where u.estado = true")
 	List<UsuarioEntity> findAllCustom();
 }

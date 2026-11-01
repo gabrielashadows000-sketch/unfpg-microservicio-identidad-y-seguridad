@@ -9,9 +9,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Transient;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,15 +44,26 @@ public class UsuarioEntity implements Serializable {
 	private Boolean estado;
 
 	// claves foraneas (solo una de las tres debe venir con valor)
-	@ManyToOne
-	@JoinColumn(name = "codalu", nullable = true)
-	private AlumnoEntity alumno;
+	
+	
 
-	@ManyToOne
-	@JoinColumn(name = "coddoc", nullable = true)
-	private DocenteEntity docente;
+	@Column(name = "codalu", nullable = true)
+	private Long codalu;
 
-	@ManyToOne
-	@JoinColumn(name = "codemp", nullable = true)
-	private EmpleadoEntity empleado;
+	@Column(name = "coddoc", nullable = true)
+	private Long coddoc;
+	
+	@Column(name = "codemp", nullable = true)
+	private Long codemp;
+	
+	
+	
+	@Transient
+	private Object alumno;
+	
+	@Transient
+	private Object docente;
+	
+	@Transient
+	private Object empleado;
 }

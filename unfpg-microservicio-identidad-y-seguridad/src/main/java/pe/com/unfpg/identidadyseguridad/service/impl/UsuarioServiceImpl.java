@@ -5,52 +5,55 @@ import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import pe.com.unfpg.identidadyseguridad.client.PersonasFeignClient;
 import pe.com.unfpg.identidadyseguridad.entity.UsuarioEntity;
 import pe.com.unfpg.identidadyseguridad.repository.UsuarioRepository;
 import pe.com.unfpg.identidadyseguridad.service.UsuarioService;
-
-
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
 	private final UsuarioRepository repositorio;
+	private final PersonasFeignClient personasFeignClient;
 
-	UsuarioServiceImpl(UsuarioRepository repositorio) {
+	public UsuarioServiceImpl(UsuarioRepository repositorio, PersonasFeignClient personasFeignClient) {
 		this.repositorio = repositorio;
-	}
-
-	// replica el CHECK de la BD: solo uno de alumno, docente o empleado
-	private void validarPropietario(UsuarioEntity obj) {
-		int cantidad = 0;
-		if (obj.getAlumno() != null) cantidad++;
-		if (obj.getDocente() != null) cantidad++;
-		if (obj.getEmpleado() != null) cantidad++;
-		if (cantidad != 1) {
-			throw new IllegalArgumentException(
-				"El usuario debe pertenecer a un alumno, un docente o un empleado (solo uno)");
-		}
+		this.personasFeignClient = personasFeignClient;
 	}
 
 	@Override
 	public List<UsuarioEntity> findAll() {
-		return repositorio.findAll();
+		List<UsuarioEntity> usuarios = repositorio.findAll();
+		for (UsuarioEntity usuario : usuarios) {
+			usuario.setAlumno(usuario.getCodalu() != null ? personasFeignClient.getAlumno(usuario.getCodalu()) : null);
+			usuario.setDocente(usuario.getCoddoc() != null ? personasFeignClient.getDocente(usuario.getCoddoc()) : null);
+			usuario.setEmpleado(usuario.getCodemp() != null ? personasFeignClient.getEmpleado(usuario.getCodemp()) : null);
+		}
+		return usuarios;
 	}
 
 	@Override
 	public List<UsuarioEntity> findAllCustom() {
-		return repositorio.findAllCustom();
+		List<UsuarioEntity> usuarios = repositorio.findAllCustom();
+		for (UsuarioEntity usuario : usuarios) {
+			usuario.setAlumno(usuario.getCodalu() != null ? personasFeignClient.getAlumno(usuario.getCodalu()) : null);
+			usuario.setDocente(usuario.getCoddoc() != null ? personasFeignClient.getDocente(usuario.getCoddoc()) : null);
+			usuario.setEmpleado(usuario.getCodemp() != null ? personasFeignClient.getEmpleado(usuario.getCodemp()) : null);
+		}
+		return usuarios;
 	}
 
 	@Override
 	public UsuarioEntity findById(Long id) {
-		return repositorio.findById(id).get();
+		UsuarioEntity usuario = repositorio.findById(id).get();
+		usuario.setAlumno(usuario.getCodalu() != null ? personasFeignClient.getAlumno(usuario.getCodalu()) : null);
+		usuario.setDocente(usuario.getCoddoc() != null ? personasFeignClient.getDocente(usuario.getCoddoc()) : null);
+		usuario.setEmpleado(usuario.getCodemp() != null ? personasFeignClient.getEmpleado(usuario.getCodemp()) : null);
+		return usuario;
 	}
 
 	@Override
 	public UsuarioEntity add(UsuarioEntity obj) {
-		validarPropietario(obj);
-		// valor por defecto de la BD
 		if (obj.getEstado() == null) {
 			obj.setEstado(true);
 		}
@@ -59,7 +62,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	public UsuarioEntity update(UsuarioEntity obj, Long id) {
-		validarPropietario(obj);
 		UsuarioEntity objusu = repositorio.findById(id).get();
 		BeanUtils.copyProperties(obj, objusu, "codigo", "fechacreacion");
 		return repositorio.save(objusu);
